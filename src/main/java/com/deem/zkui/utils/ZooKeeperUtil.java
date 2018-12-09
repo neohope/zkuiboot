@@ -42,9 +42,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.LoggerFactory;
 
-public enum ZooKeeperUtil {
+public class ZooKeeperUtil {
 
-    INSTANCE;
     public final static Integer MAX_CONNECT_ATTEMPT = 5;
     public final static String ZK_ROOT_NODE = "/";
     public final static String ZK_SYSTEM_NODE = "zookeeper"; // ZK internal folder (quota info, etc) - have to stay away from it
@@ -55,7 +54,7 @@ public enum ZooKeeperUtil {
 
     private final static org.slf4j.Logger logger = LoggerFactory.getLogger(ZooKeeperUtil.class);
 
-    public ZooKeeper createZKConnection(String url, Integer zkSessionTimeout) throws IOException, InterruptedException {
+    public static ZooKeeper createZKConnection(String url, Integer zkSessionTimeout) throws IOException, InterruptedException {
         Integer connectAttempt = 0;
         ZooKeeper zk = new ZooKeeper(url, zkSessionTimeout, new Watcher() {
             @Override
@@ -75,13 +74,13 @@ public enum ZooKeeperUtil {
 
     }
 
-    private ArrayList<ACL> defaultAcl = ZooDefs.Ids.OPEN_ACL_UNSAFE;
+    private static ArrayList<ACL> defaultAcl = ZooDefs.Ids.OPEN_ACL_UNSAFE;
 
-    private ArrayList<ACL> defaultAcl() {
+    private static ArrayList<ACL> defaultAcl() {
         return defaultAcl;
     }
 
-    public void setDefaultAcl(String jsonAcl) {
+    public static void setDefaultAcl(String jsonAcl) {
         if (jsonAcl == null || jsonAcl.trim().length() == 0) {
             logger.trace("Using UNSAFE ACL. Anyone on your LAN can change your Zookeeper data");
             defaultAcl = ZooDefs.Ids.OPEN_ACL_UNSAFE;
@@ -92,8 +91,9 @@ public enum ZooKeeperUtil {
         ArrayList<ACL> newDefault = new ArrayList<>();
         try {
             JSONArray acls = (JSONArray) ((JSONObject) new JSONParser().parse(jsonAcl)).get("acls");
-            for (Iterator it = acls.iterator(); it.hasNext();) {
-                JSONObject acl = (JSONObject) it.next();
+            for (@SuppressWarnings("unchecked")
+			Iterator<JSONObject> it = acls.iterator(); it.hasNext();) {
+                JSONObject acl = it.next();
                 String scheme = ((String) acl.get("scheme")).trim();
                 String id = ((String) acl.get("id")).trim();
                 int perms = 0;
@@ -131,13 +131,13 @@ public enum ZooKeeperUtil {
         defaultAcl = newDefault;
     }
 
-    public Set<LeafBean> searchTree(String searchString, ZooKeeper zk, String authRole) throws InterruptedException, KeeperException {
+    public static Set<LeafBean> searchTree(String searchString, ZooKeeper zk, String authRole) throws InterruptedException, KeeperException {
         //Export all nodes and then search.
         Set<LeafBean> searchResult = new TreeSet<>();
         Set<LeafBean> leaves = new TreeSet<>();
         exportTreeInternal(leaves, ZK_ROOT_NODE, zk, authRole);
         for (LeafBean leaf : leaves) {
-            String leafValue = ServletUtil.INSTANCE.externalizeNodeValue(leaf.getValue());
+            String leafValue = ServletUtil.externalizeNodeValue(leaf.getValue());
             if (leaf.getPath().contains(searchString) || leaf.getName().contains(searchString) || leafValue.contains(searchString)) {
                 searchResult.add(leaf);
             }
@@ -146,7 +146,7 @@ public enum ZooKeeperUtil {
 
     }
 
-    public Set<LeafBean> exportTree(String zkPath, ZooKeeper zk, String authRole) throws InterruptedException, KeeperException {
+    public static Set<LeafBean> exportTree(String zkPath, ZooKeeper zk, String authRole) throws InterruptedException, KeeperException {
         // 1. Collect nodes
         long startTime = System.currentTimeMillis();
         Set<LeafBean> leaves = new TreeSet<>();
@@ -156,16 +156,16 @@ public enum ZooKeeperUtil {
         return leaves;
     }
 
-    private void exportTreeInternal(Set<LeafBean> entries, String path, ZooKeeper zk, String authRole) throws InterruptedException, KeeperException {
+    private static void exportTreeInternal(Set<LeafBean> entries, String path, ZooKeeper zk, String authRole) throws InterruptedException, KeeperException {
         // 1. List leaves
-        entries.addAll(this.listLeaves(zk, path, authRole));
+        entries.addAll(listLeaves(zk, path, authRole));
         // 2. Process folders
-        for (String folder : this.listFolders(zk, path)) {
-            exportTreeInternal(entries, this.getNodePath(path, folder), zk, authRole);
+        for (String folder : listFolders(zk, path)) {
+            exportTreeInternal(entries, getNodePath(path, folder), zk, authRole);
         }
     }
 
-    public void importData(List<String> importFile, Boolean overwrite, ZooKeeper zk) throws IOException, InterruptedException, KeeperException {
+    public static void importData(List<String> importFile, Boolean overwrite, ZooKeeper zk) throws IOException, InterruptedException, KeeperException {
 
         for (String line : importFile) {
             logger.debug("Importing line " + line);
@@ -209,11 +209,11 @@ public enum ZooKeeperUtil {
         }
     }
 
-    private String readExternalizedNodeValue(String raw) {
+    private static String readExternalizedNodeValue(String raw) {
         return raw.replaceAll("\\\\n", "\n");
     }
 
-    private void createPathAndNode(String path, String name, byte[] data, boolean force, ZooKeeper zk) throws InterruptedException, KeeperException {
+    private static void createPathAndNode(String path, String name, byte[] data, boolean force, ZooKeeper zk) throws InterruptedException, KeeperException {
         // 1. Create path nodes if necessary
         StringBuilder currPath = new StringBuilder();
         for (String folder : path.split("/")) {
@@ -232,7 +232,7 @@ public enum ZooKeeperUtil {
         createIfDoesntExist(path + '/' + name, data, force, zk);
     }
 
-    private void createIfDoesntExist(String path, byte[] data, boolean force, ZooKeeper zooKeeper) throws InterruptedException, KeeperException {
+    private static void createIfDoesntExist(String path, byte[] data, boolean force, ZooKeeper zooKeeper) throws InterruptedException, KeeperException {
         try {
             zooKeeper.create(path, data, defaultAcl(), CreateMode.PERSISTENT);
         } catch (KeeperException ke) {
@@ -248,7 +248,7 @@ public enum ZooKeeperUtil {
         }
     }
 
-    public ZKNode listNodeEntries(ZooKeeper zk, String path, String authRole) throws KeeperException, InterruptedException {
+    public static ZKNode listNodeEntries(ZooKeeper zk, String path, String authRole) throws KeeperException, InterruptedException {
         List<String> folders = new ArrayList<>();
         List<LeafBean> leaves = new ArrayList<>();
 
@@ -263,7 +263,7 @@ public enum ZooKeeperUtil {
                         folders.add(child);
                     } else {
                         String childPath = getNodePath(path, child);
-                        leaves.add(this.getNodeValue(zk, path, childPath, child, authRole));
+                        leaves.add(getNodeValue(zk, path, childPath, child, authRole));
                     }
 
                 }
@@ -286,7 +286,7 @@ public enum ZooKeeperUtil {
     }
 
     @Deprecated
-    public List<LeafBean> listLeaves(ZooKeeper zk, String path, String authRole) throws InterruptedException, KeeperException {
+    public static List<LeafBean> listLeaves(ZooKeeper zk, String path, String authRole) throws InterruptedException, KeeperException {
         List<LeafBean> leaves = new ArrayList<>();
 
         List<String> children = zk.getChildren(path, false);
@@ -297,7 +297,7 @@ public enum ZooKeeperUtil {
                 subChildren = zk.getChildren(childPath, false);
                 boolean isFolder = subChildren != null && !subChildren.isEmpty();
                 if (!isFolder) {
-                    leaves.add(this.getNodeValue(zk, path, childPath, child, authRole));
+                    leaves.add(getNodeValue(zk, path, childPath, child, authRole));
                 }
             }
         }
@@ -313,7 +313,7 @@ public enum ZooKeeperUtil {
     }
 
     @Deprecated
-    public List<String> listFolders(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
+    public static List<String> listFolders(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
         List<String> folders = new ArrayList<>();
         List<String> children = zk.getChildren(path, false);
         if (children != null) {
@@ -333,12 +333,12 @@ public enum ZooKeeperUtil {
         return folders;
     }
 
-    public String getNodePath(String path, String name) {
+    public static String getNodePath(String path, String name) {
         return path + ("/".equals(path) ? "" : "/") + name;
 
     }
 
-    public LeafBean getNodeValue(ZooKeeper zk, String path, String childPath, String child, String authRole) {
+    public static LeafBean getNodeValue(ZooKeeper zk, String path, String childPath, String child, String authRole) {
         //Reason exception is caught here is so that lookup can continue to happen if a particular property is not found at parent level.
         try {
             logger.trace("Lookup: path=" + path + ",childPath=" + childPath + ",child=" + child + ",authRole=" + authRole);
@@ -359,7 +359,7 @@ public enum ZooKeeperUtil {
 
     }
 
-    public Boolean checkIfPwdField(String property) {
+    public static Boolean checkIfPwdField(String property) {
         if (property.contains("PWD") || property.contains("pwd") || property.contains("PASSWORD") || property.contains("password") || property.contains("PASSWD") || property.contains("passwd")) {
             return true;
         } else {
@@ -367,14 +367,14 @@ public enum ZooKeeperUtil {
         }
     }
 
-    public void createNode(String path, String name, String value, ZooKeeper zk) throws KeeperException, InterruptedException {
+    public static void createNode(String path, String name, String value, ZooKeeper zk) throws KeeperException, InterruptedException {
         String nodePath = path + name;
         logger.debug("Creating node " + nodePath + " with value " + value);
         zk.create(nodePath, value == null ? null : value.getBytes(), defaultAcl(), CreateMode.PERSISTENT);
 
     }
 
-    public void createFolder(String folderPath, String propertyName, String propertyValue, ZooKeeper zk) throws KeeperException, InterruptedException {
+    public static void createFolder(String folderPath, String propertyName, String propertyValue, ZooKeeper zk) throws KeeperException, InterruptedException {
 
         logger.debug("Creating folder " + folderPath + " with property " + propertyName + " and value " + propertyValue);
         zk.create(folderPath, "".getBytes(), defaultAcl(), CreateMode.PERSISTENT);
@@ -382,19 +382,19 @@ public enum ZooKeeperUtil {
 
     }
 
-    public void setPropertyValue(String path, String name, String value, ZooKeeper zk) throws KeeperException, InterruptedException {
+    public static void setPropertyValue(String path, String name, String value, ZooKeeper zk) throws KeeperException, InterruptedException {
         String nodePath = path + name;
         logger.debug("Setting property " + nodePath + " to " + value);
         zk.setData(nodePath, value.getBytes(), -1);
 
     }
 
-    public boolean nodeExists(String nodeFullPath, ZooKeeper zk) throws KeeperException, InterruptedException {
+    public static boolean nodeExists(String nodeFullPath, ZooKeeper zk) throws KeeperException, InterruptedException {
         logger.trace("Checking if exists: " + nodeFullPath);
         return zk.exists(nodeFullPath, false) != null;
     }
 
-    public void deleteFolders(List<String> folderNames, ZooKeeper zk) throws KeeperException, InterruptedException {
+    public static void deleteFolders(List<String> folderNames, ZooKeeper zk) throws KeeperException, InterruptedException {
 
         for (String folderPath : folderNames) {
             deleteFolderInternal(folderPath, zk);
@@ -402,7 +402,7 @@ public enum ZooKeeperUtil {
 
     }
 
-    private void deleteFolderInternal(String folderPath, ZooKeeper zk) throws KeeperException, InterruptedException {
+    private static void deleteFolderInternal(String folderPath, ZooKeeper zk) throws KeeperException, InterruptedException {
 
         logger.debug("Deleting folder " + folderPath);
         for (String child : zk.getChildren(folderPath, false)) {
@@ -411,7 +411,7 @@ public enum ZooKeeperUtil {
         zk.delete(folderPath, -1);
     }
 
-    public void deleteLeaves(List<String> leafNames, ZooKeeper zk) throws InterruptedException, KeeperException {
+    public static void deleteLeaves(List<String> leafNames, ZooKeeper zk) throws InterruptedException, KeeperException {
 
         for (String leafPath : leafNames) {
             logger.debug("Deleting leaf " + leafPath);
@@ -419,11 +419,11 @@ public enum ZooKeeperUtil {
         }
     }
 
-    private void deleteNodeIfExists(String path, ZooKeeper zk) throws InterruptedException, KeeperException {
+    private static void deleteNodeIfExists(String path, ZooKeeper zk) throws InterruptedException, KeeperException {
         zk.delete(path, -1);
     }
 
-    public void closeZooKeeper(ZooKeeper zk) throws InterruptedException {
+    public static void closeZooKeeper(ZooKeeper zk) throws InterruptedException {
         logger.trace("Closing ZooKeeper");
         if (zk != null) {
             zk.close();

@@ -22,22 +22,35 @@ import com.googlecode.flyway.core.Flyway;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 import org.javalite.activejdbc.Base;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 public class Dao {
     
     private final static Integer FETCH_LIMIT = 50;
     private final static org.slf4j.Logger logger = LoggerFactory.getLogger(Dao.class);
-    private final Properties globalProps;
     
-    public Dao(Properties globalProps) {
-        this.globalProps = globalProps;
+    @Value("${zkui.jdbcClass}")
+	private String jdbcClass;
+	
+	@Value("${zkui.jdbcUrl}")
+	private String jdbcUrl;
+	
+	@Value("${zkui.jdbcUser}")
+	private String jdbcUser;
+	
+	@Value("${zkui.jdbcPwd}")
+	private String jdbcPwd;
+	
+	@Value("${zkui.env}")
+	private String env;
+    
+    public Dao() {
     }
     
     public void open() {
-        Base.open(globalProps.getProperty("jdbcClass"), globalProps.getProperty("jdbcUrl"), globalProps.getProperty("jdbcUser"), globalProps.getProperty("jdbcPwd"));
+        Base.open(jdbcClass, jdbcUrl, jdbcUser, jdbcPwd);
     }
     
     public void close() {
@@ -47,9 +60,9 @@ public class Dao {
     public void checkNCreate() {
         try {
             Flyway flyway = new Flyway();
-            flyway.setDataSource(globalProps.getProperty("jdbcUrl"), globalProps.getProperty("jdbcUser"), globalProps.getProperty("jdbcPwd"));
+            flyway.setDataSource(jdbcUrl, jdbcUser, jdbcPwd);
             //Will wipe db each time. Avoid this in prod.
-            if (globalProps.getProperty("env").equals("dev")) {
+            if (env.equals("dev")) {
                 flyway.clean();
             }
             //Remove the above line if deploying to prod.

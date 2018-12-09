@@ -15,7 +15,7 @@
  * the License.
  *
  */
-package com.deem.zkui.controller;
+package com.neohope.zkui.controller;
 
 import com.deem.zkui.utils.ServletUtil;
 import com.deem.zkui.utils.ZooKeeperUtil;
@@ -25,54 +25,60 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-@SuppressWarnings("serial")
-@WebServlet(urlPatterns = {"/acd/appconfig"})
-public class RestAccess extends HttpServlet {
+@RestController
+public class RestAccess{
 
     private final static Logger logger = LoggerFactory.getLogger(RestAccess.class);
+    
+	@Value("${zkui.zkServer}")
+	private String zkServer;
+	
+	@Value("${zkui.blockPwdOverRest}")
+	private Boolean blockPwdOverRest;
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    @GetMapping("/acd/appconfig")
+    public void doGet(HttpSession session, HttpServletRequest request, HttpServletResponse response,
+    		@RequestParam(name="cluster",required=false) String clusterName, 
+    		@RequestParam(name="app",required=false) String appName, 
+    		@RequestParam(name="host",required=false) String hostName, 
+    		@RequestParam(name="zkPath",required=false) String zkPath) throws ServletException, IOException {
         logger.debug("Rest Action!");
         ZooKeeper zk = null;
         try {
-            Properties globalProps = (Properties) this.getServletContext().getAttribute("globalProps");
-            String zkServer = globalProps.getProperty("zkServer");
-            String[] zkServerLst = zkServer.split(",");
             String accessRole = ZooKeeperUtil.ROLE_USER;
-            if ((globalProps.getProperty("blockPwdOverRest") != null) && (Boolean.valueOf(globalProps.getProperty("blockPwdOverRest")) == Boolean.FALSE)) {
+            if (!blockPwdOverRest) {
                 accessRole = ZooKeeperUtil.ROLE_ADMIN;
             }
             StringBuilder resultOut = new StringBuilder();
-            String clusterName = request.getParameter("cluster");
-            String appName = request.getParameter("app");
-            String hostName = request.getParameter("host");
             String[] propNames = request.getParameterValues("propNames");
             String propValue = "";
             LeafBean propertyNode;
 
             if (hostName == null) {
-                hostName = ServletUtil.INSTANCE.getRemoteAddr(request);
+                hostName = request.getRemoteAddr();
             }
-            zk = ServletUtil.INSTANCE.getZookeeper(request, response, zkServerLst[0], globalProps);
+            zk = ServletUtil.getZookeeper(session);
             //get the path of the hosts entry.
             LeafBean hostsNode = null;
             //If app name is mentioned then lookup path is appended with it.
-            if (appName != null && ZooKeeperUtil.INSTANCE.nodeExists(ZooKeeperUtil.ZK_HOSTS + "/" + hostName + ":" + appName, zk)) {
-                hostsNode = ZooKeeperUtil.INSTANCE.getNodeValue(zk, ZooKeeperUtil.ZK_HOSTS, ZooKeeperUtil.ZK_HOSTS + "/" + hostName + ":" + appName, hostName + ":" + appName, accessRole);
+            if (appName != null && ZooKeeperUtil.nodeExists(ZooKeeperUtil.ZK_HOSTS + "/" + hostName + ":" + appName, zk)) {
+                hostsNode = ZooKeeperUtil.getNodeValue(zk, ZooKeeperUtil.ZK_HOSTS, ZooKeeperUtil.ZK_HOSTS + "/" + hostName + ":" + appName, hostName + ":" + appName, accessRole);
             } else {
-                hostsNode = ZooKeeperUtil.INSTANCE.getNodeValue(zk, ZooKeeperUtil.ZK_HOSTS, ZooKeeperUtil.ZK_HOSTS + "/" + hostName, hostName, accessRole);
+                hostsNode = ZooKeeperUtil.getNodeValue(zk, ZooKeeperUtil.ZK_HOSTS, ZooKeeperUtil.ZK_HOSTS + "/" + hostName, hostName, accessRole);
             }
 
             String lookupPath = hostsNode.getStrValue();
@@ -91,50 +97,50 @@ public class RestAccess extends HttpServlet {
 
             //You specify a cluster or an app name to group.
             if (clusterName != null && appName == null) {
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + hostName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + hostName, zk)) {
                     searchPath.add(lookupPath + "/" + hostName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + clusterName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + clusterName, zk)) {
                     searchPath.add(lookupPath + "/" + clusterName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + clusterName + "/" + hostName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + clusterName + "/" + hostName, zk)) {
                     searchPath.add(lookupPath + "/" + clusterName + "/" + hostName);
                 }
 
             } else if (appName != null && clusterName == null) {
 
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + hostName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + hostName, zk)) {
                     searchPath.add(lookupPath + "/" + hostName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + appName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + appName, zk)) {
                     searchPath.add(lookupPath + "/" + appName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + appName + "/" + hostName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + appName + "/" + hostName, zk)) {
                     searchPath.add(lookupPath + "/" + appName + "/" + hostName);
                 }
 
             } else if (appName != null && clusterName != null) {
                 //Order in which these paths are listed is important as the lookup happens in that order.
                 //Precedence is give to cluster over app.
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + hostName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + hostName, zk)) {
                     searchPath.add(lookupPath + "/" + hostName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + appName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + appName, zk)) {
                     searchPath.add(lookupPath + "/" + appName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + appName + "/" + hostName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + appName + "/" + hostName, zk)) {
                     searchPath.add(lookupPath + "/" + appName + "/" + hostName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + clusterName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + clusterName, zk)) {
                     searchPath.add(lookupPath + "/" + clusterName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + clusterName + "/" + hostName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + clusterName + "/" + hostName, zk)) {
                     searchPath.add(lookupPath + "/" + clusterName + "/" + hostName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + clusterName + "/" + appName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + clusterName + "/" + appName, zk)) {
                     searchPath.add(lookupPath + "/" + clusterName + "/" + appName);
                 }
-                if (ZooKeeperUtil.INSTANCE.nodeExists(lookupPath + "/" + clusterName + "/" + appName + "/" + hostName, zk)) {
+                if (ZooKeeperUtil.nodeExists(lookupPath + "/" + clusterName + "/" + appName + "/" + hostName, zk)) {
                     searchPath.add(lookupPath + "/" + clusterName + "/" + appName + "/" + hostName);
                 }
 
@@ -145,7 +151,7 @@ public class RestAccess extends HttpServlet {
                 propValue = null;
                 for (String path : searchPath) {
                     logger.trace("Looking up " + path);
-                    propertyNode = ZooKeeperUtil.INSTANCE.getNodeValue(zk, path, path + "/" + propName, propName, accessRole);
+                    propertyNode = ZooKeeperUtil.getNodeValue(zk, path, path + "/" + propName, propName, accessRole);
                     if (propertyNode != null) {
                         propValue = propertyNode.getStrValue();
                     }
@@ -163,10 +169,11 @@ public class RestAccess extends HttpServlet {
 
         } catch (KeeperException | InterruptedException ex) {
             logger.error(Arrays.toString(ex.getStackTrace()));
-            ServletUtil.INSTANCE.renderError(request, response, ex.getMessage());
+            //mv.setViewName("error");
+            //mv.addObject("error", ex.getMessage());
         } finally {
             if (zk != null) {
-                ServletUtil.INSTANCE.closeZookeeper(zk);
+                ServletUtil.closeZookeeper(zk);
             }
         }
 

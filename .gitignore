@@ -1,3 +1,7 @@
 .idea/
-zkui.iml
+.settings/
 /target/
+zkui.iml
+.classpath
+.project
+*.log

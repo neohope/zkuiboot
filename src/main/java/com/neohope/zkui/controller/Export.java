@@ -15,18 +15,16 @@
  * the License.
  *
  */
-package com.deem.zkui.controller;
+package com.neohope.zkui.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
-import java.util.Properties;
 import java.util.Set;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.apache.zookeeper.KeeperException;
 import com.deem.zkui.utils.ServletUtil;
 import com.deem.zkui.utils.ZooKeeperUtil;
@@ -34,32 +32,33 @@ import com.deem.zkui.vo.LeafBean;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
-@SuppressWarnings("serial")
-@WebServlet(urlPatterns = {"/export"})
-public class Export extends HttpServlet {
+@RestController
+public class Export{
 
     private final static Logger logger = LoggerFactory.getLogger(Export.class);
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    @GetMapping("/export")
+    public void doGet(HttpSession session, ModelAndView mv, HttpServletResponse response,
+    		@RequestParam(name="zkPath",required=false) String zkPath) throws ServletException, IOException {
         logger.debug("Export Get Action!");
         try {
-            Properties globalProps = (Properties) this.getServletContext().getAttribute("globalProps");
-            String zkServer = globalProps.getProperty("zkServer");
-            String[] zkServerLst = zkServer.split(",");
-
-            String authRole = (String) request.getSession().getAttribute("authRole");
+            String authRole = (String) session.getAttribute("authRole");
             if (authRole == null) {
                 authRole = ZooKeeperUtil.ROLE_USER;
             }
-            String zkPath = request.getParameter("zkPath");
+            
             StringBuilder output = new StringBuilder();
             output.append("#App Config Dashboard (ACD) dump created on :").append(new Date()).append("\n");
-            Set<LeafBean> leaves = ZooKeeperUtil.INSTANCE.exportTree(zkPath, ServletUtil.INSTANCE.getZookeeper(request, response, zkServerLst[0], globalProps), authRole);
+            Set<LeafBean> leaves = ZooKeeperUtil.exportTree(zkPath, ServletUtil.getZookeeper(session), authRole);
             for (LeafBean leaf : leaves) {
-                output.append(leaf.getPath()).append('=').append(leaf.getName()).append('=').append(ServletUtil.INSTANCE.externalizeNodeValue(leaf.getValue())).append('\n');
+                output.append(leaf.getPath()).append('=').append(leaf.getName()).append('=').append(ServletUtil.externalizeNodeValue(leaf.getValue())).append('\n');
             }// for all leaves
+            
             response.setContentType("text/plain;charset=UTF-8");
             try (PrintWriter out = response.getWriter()) {
                 out.write(output.toString());
@@ -67,7 +66,6 @@ public class Export extends HttpServlet {
 
         } catch (InterruptedException | KeeperException ex) {
             logger.error(Arrays.toString(ex.getStackTrace()));
-            ServletUtil.INSTANCE.renderError(request, response, ex.getMessage());
         }
     }
 }

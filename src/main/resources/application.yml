@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: zkuiboot
+    admin:
+      enabled: false
+  main:
+    banner-mode: console
+  profiles: default
+  freemarker:
+    suffix: .ftl.html 
+
+
+server:
+  port: 5000
+
+
+logging:
+  file: zkuiboot.log 
+# path:
+  level:
+    root: INFO
+
+
+zkui:
+  zkServer: 'localhost:2181'
+  zkSessionTimeout: 5
+  sessionTimeout: 300
+  env: prod
+  loginMessage: 'Please login using admin/manager or appconfig/appconfig.'
+  
+  scmRepo: 'http://myserver.com/@rev1='
+  scmRepoPath: '//appconfig.txt'
+  
+  jdbcClass: org.h2.Driver
+  jdbcUrl: jdbc:h2:zkui
+  #jdbcClass: com.mysql.jdbc.Driver
+  #jdbcUrl: jdbc:mysql://localhost:3306/zkui
+  jdbcUser: root
+  jdbcPwd: manager
+  
+  defaultAcl: '{"acls":[{"scheme":"ip","id":"*","perms":"*"},{"scheme":"ip","id":"*","perms":"r"}]}'
+  userSet: '{"users": [{ "username":"admin" , "password":"manager","role": "ADMIN" },{ "username":"appconfig" , "password":"appconfig","role": "USER"}]}' 
+  blockPwdOverRest: false
+  
+  ldapAuth: false
+  ldapDomain: mycompany,mydomain
+  ldapUrl: 'ldap://<ldap_host>:<ldap_port>/dc=mycom,dc=com'
+  ldapRoleSet: '{"users":[{"username":"domain\\user1","role":"ADMIN"}]}'
+  
+  
+  
+  
+  
+  

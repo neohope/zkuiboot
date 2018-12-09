@@ -33,7 +33,7 @@ public class LdapAuth {
 
         String[] domainArr = domains.split(",");
         for (String domain : domainArr) {
-            Hashtable env = new Hashtable();
+            Hashtable<String,String> env = new Hashtable<>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
             env.put(Context.PROVIDER_URL, ldapUrl);
             env.put(Context.SECURITY_AUTHENTICATION, "simple");

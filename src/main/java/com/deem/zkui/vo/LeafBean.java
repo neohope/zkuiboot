@@ -35,6 +35,13 @@ public class LeafBean implements Comparable<LeafBean> {
         this.path = path;
         this.name = name;
         this.value = value;
+        
+        try {
+        	this.strValue = new String(this.value, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+        	this.strValue = null;
+            logger.error(Arrays.toString(ex.getStackTrace()));
+        }
     }
 
     public String getPath() {
@@ -59,15 +66,18 @@ public class LeafBean implements Comparable<LeafBean> {
 
     public void setValue(byte[] value) {
         this.value = value;
+        
+        try {
+        	this.strValue = new String(this.value, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+        	this.strValue = null;
+            logger.error(Arrays.toString(ex.getStackTrace()));
+        }
     }
 
     public String getStrValue() {
-        try {
-            return new String(this.value, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            logger.error(Arrays.toString(ex.getStackTrace()));
-        }
-        return null;
+       
+        return strValue;
     }
 
     public void setStrValue(String strValue) {

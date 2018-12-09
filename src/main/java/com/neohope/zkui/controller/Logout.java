@@ -15,42 +15,40 @@
  * the License.
  *
  */
-package com.deem.zkui.controller;
+package com.neohope.zkui.controller;
 
 import java.io.IOException;
-import java.util.Properties;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.apache.zookeeper.ZooKeeper;
 import com.deem.zkui.utils.ServletUtil;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
-@SuppressWarnings("serial")
-@WebServlet(urlPatterns = {"/logout"})
-public class Logout extends HttpServlet {
+@RestController
+public class Logout{
 
     private final static Logger logger = LoggerFactory.getLogger(Logout.class);
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    @GetMapping("/logout")
+    public ModelAndView doGet(HttpSession session, ModelAndView mv) throws ServletException, IOException {
         try {
             logger.debug("Logout Action!");
-            Properties globalProps = (Properties) getServletContext().getAttribute("globalProps");
-            String zkServer = globalProps.getProperty("zkServer");
-            String[] zkServerLst = zkServer.split(",");
-            ZooKeeper zk = ServletUtil.INSTANCE.getZookeeper(request, response, zkServerLst[0],globalProps);
-            request.getSession().invalidate();
+            ZooKeeper zk = ServletUtil.getZookeeper(session);
+            session.invalidate();
             zk.close();
-            response.sendRedirect("/login");
+            mv= new ModelAndView("redirect:/login");
         } catch (InterruptedException ex) {
             logger.error(Arrays.toString(ex.getStackTrace()));
-            ServletUtil.INSTANCE.renderError(request, response, ex.getMessage());
+            mv.setViewName("error");
+            mv.addObject("error", ex.getMessage());
         }
 
+        return mv;
     }
 }
