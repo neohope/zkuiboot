@@ -1,5 +1,5 @@
-NAME = zkui
-VERSION=2.0-SNAPSHOT
+NAME = zkuiboot
+VERSION=0.1.0
 
 .PHONY: all build publish
 

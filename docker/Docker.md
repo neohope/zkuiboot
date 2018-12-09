@@ -13,8 +13,8 @@
 # Run within Docker Compose
 
 ```
-zkui:
-  image: zkui
+zkuiboot:
+  image: zkuiboot
   ports:
     - "9090:9090"
 ```
