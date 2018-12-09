@@ -2,6 +2,10 @@ zkuiboot - Zookeeper UI Dashboard SpringBoot Version
 ====================
 Based on zkui - A UI dashboard that allows CRUD operations on Zookeeper.
 
+ToDo
+====================
+version 0.1.0, lots of tests
+
 Requirements
 ====================
 Requires Java 8 to run.
