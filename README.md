@@ -1,38 +1,33 @@
-zkui - Zookeeper UI Dashboard
+zkuiboot - Zookeeper UI Dashboard SpringBoot Version
 ====================
-A UI dashboard that allows CRUD operations on Zookeeper.
+Based on zkui - A UI dashboard that allows CRUD operations on Zookeeper.
 
 Requirements
 ====================
-Requires Java 7 to run.
+Requires Java 8 to run.
 
 Setup
 ====================
-1. mvn clean install
-2. Copy the config.cfg to the folder with the jar file. Modify it to point to the zookeeper instance. Multiple zk instances are coma separated.  eg: server1:2181,server2:2181. First server should always be the leader.
-3. Run the jar. ( nohup java -jar zkui-2.0-SNAPSHOT-jar-with-dependencies.jar & )
-4. <a href="http://localhost:9090">http://localhost:9090</a> 
+1. modify application.yml, Modify it to point to the zookeeper instance. Multiple zk instances are coma separated. First server should always be the leader.
+2. mvn clean install
+3. Run the jar. ( nohup java -jar zkuiboot-0.1.0-jar& )
+4. <a href="http://localhost:5000">http://localhost:5000</a> 
 
 Login Info
 ====================
 username: admin, pwd: manager (Admin privileges, CRUD operations supported)
 username: appconfig, pwd: appconfig (Readonly privileges, Read operations supported)
 
-You can change this in the config.cfg
+You can change this in the application.yml
 
 Technology Stack
 ====================
-1. Embedded Jetty Server.
-2. Freemarker template.
-3. H2 DB.
-4. Active JDBC.
-5. JSON.
-6. SLF4J.
-7. Zookeeper.
-8. Apache Commons File upload.
-9. Bootstrap.
-10. Jquery.
-11. Flyway DB migration.
+1. SpringBoot.
+2. Freemarker.
+3. Bootstrap & Jquery.
+4. Flyway DB migration.
+5. H2 DB and MySQL DB.
+6. Zookeeper.
 
 Features
 ====================
@@ -80,20 +75,20 @@ REST call
 A lot of times you require your shell scripts to be able to read properties from zookeeper. This can now be achieved with a http call. Password are not exposed via rest api for security reasons. The rest call is a read only operation requiring no authentication.
 
 Eg:
-http://localhost:9090/acd/appconfig?propNames=foo&host=myhost.com
+http://localhost:5000/acd/appconfig?propNames=foo&host=myhost.com
 This will first lookup the host name under /appconfig/hosts and then find out which path the host point to. Then it will look for the property under that path.
 
 There are 2 additional properties that can be added to give better control.
 cluster=cluster1
-http://localhost:9090/acd/appconfig?propNames=foo&cluster=cluster1&host=myhost.com
+http://localhost:5000/acd/appconfig?propNames=foo&cluster=cluster1&host=myhost.com
 In this case the lookup will happen on lookup path + cluster1.
 
 app=myapp
-http://localhost:9090/acd/appconfig?propNames=foo&app=myapp&host=myhost.com
+http://localhost:5000/acd/appconfig?propNames=foo&app=myapp&host=myhost.com
 In this case the lookup will happen on lookup path + myapp.
 
 A shell script will call this via
-MY_PROPERTY="$(curl -f -s -S -k "http://localhost:9090/acd/appconfig?propNames=foo&host=`hostname -f`" | cut -d '=' -f 2)"
+MY_PROPERTY="$(curl -f -s -S -k "http://localhost:5000/acd/appconfig?propNames=foo&host=`hostname -f`" | cut -d '=' -f 2)"
 echo $MY_PROPERTY
 
 Standardization
@@ -119,7 +114,6 @@ This standardization is only needed if you choose to use the rest lookup. You ca
 HTTPS
 ====================
 You can enable https if needed. 
-keytool -keystore keystore -alias jetty -genkey -keyalg RSA
 
 
 Limitations
