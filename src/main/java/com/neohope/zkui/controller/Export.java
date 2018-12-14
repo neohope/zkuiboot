@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 @RestController
-public class Export{
+public class Export extends BaseController{
 
     private final static Logger logger = LoggerFactory.getLogger(Export.class);
 
@@ -46,6 +46,8 @@ public class Export{
     public void doGet(HttpSession session, ModelAndView mv, HttpServletResponse response,
     		@RequestParam(name="zkPath",required=false) String zkPath) throws ServletException, IOException {
         logger.debug("Export Get Action!");
+        
+        ZkConfig cfg = (ZkConfig)getBean("ZkConfig");
         try {
             String authRole = (String) session.getAttribute("authRole");
             if (authRole == null) {
@@ -54,7 +56,7 @@ public class Export{
             
             StringBuilder output = new StringBuilder();
             output.append("#App Config Dashboard (ACD) dump created on :").append(new Date()).append("\n");
-            Set<LeafBean> leaves = ZooKeeperUtil.exportTree(zkPath, ServletUtil.getZookeeper(session), authRole);
+            Set<LeafBean> leaves = ZooKeeperUtil.exportTree(zkPath, ServletUtil.getZookeeper(session,cfg), authRole);
             for (LeafBean leaf : leaves) {
                 output.append(leaf.getPath()).append('=').append(leaf.getName()).append('=').append(ServletUtil.externalizeNodeValue(leaf.getValue())).append('\n');
             }// for all leaves

@@ -1,7 +1,11 @@
 .idea/
 .settings/
-/target/
+.externalToolBuilders/
+target/
+*.log
+*.db
+*.me.bat
 zkui.iml
 .classpath
 .project
-*.log
+

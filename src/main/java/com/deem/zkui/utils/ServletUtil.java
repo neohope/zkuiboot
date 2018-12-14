@@ -24,23 +24,20 @@ import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.neohope.zkui.controller.ZkConfig;
+
 public class ServletUtil {
 	
     private final static Logger logger = LoggerFactory.getLogger(ServletUtil.class);
-  
-    public static String zkServer;
-	public static Integer zkSessionTimeout;
-	public static String defaultAcl;
 
-    public static ZooKeeper getZookeeper(HttpSession session) {
+    public static ZooKeeper getZookeeper(HttpSession session,ZkConfig cfg) {
         try {
         	
-        	String[] zkServerLst = zkServer.split(",");
+        	String[] zkServerLst = cfg.zkServer.split(",");
             ZooKeeper zk = (ZooKeeper) session.getAttribute("zk");
             if (zk == null || zk.getState() != ZooKeeper.States.CONNECTED) {
-                zkSessionTimeout = zkSessionTimeout * 1000;
-                zk = ZooKeeperUtil.createZKConnection(zkServerLst[0], zkSessionTimeout);
-                ZooKeeperUtil.setDefaultAcl(defaultAcl);
+                zk = ZooKeeperUtil.createZKConnection(zkServerLst[0], cfg.zkSessionTimeout);
+                ZooKeeperUtil.setDefaultAcl(cfg.defaultAcl);
                 if (zk.getState() != ZooKeeper.States.CONNECTED) {
                     session.setAttribute("zk", null);
                 } else {
@@ -68,5 +65,4 @@ public class ServletUtil {
         return value == null ? "" : new String(value).replaceAll("\\n", "\\\\n").replaceAll("\\r", "");
         // We might want to BASE64 encode it
     }
-
 }

@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -49,10 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 @RestController
-@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 10, // 10 MB
-        maxFileSize = 1024 * 1024 * 50, // 50 MB
-        maxRequestSize = 1024 * 1024 * 100)      // 100 MB
-public class Import{
+public class Import extends BaseController{
 
     private final static Logger logger = LoggerFactory.getLogger(Import.class);
     
@@ -62,8 +58,9 @@ public class Import{
     @PostMapping("/import")
     public ModelAndView doPost(HttpSession session,HttpServletRequest request, ModelAndView mv) throws ServletException, IOException {
         logger.debug("Importing Action!");
+        ZkConfig cfg = (ZkConfig)getBean("ZkConfig");
         try {
-            Dao dao = new Dao();
+            Dao dao = (Dao)getBean("Dao");
 
             StringBuilder sbFile = new StringBuilder();
             String scmOverwrite = "false";
@@ -137,7 +134,7 @@ public class Import{
             }
             br.close();
 
-            ZooKeeperUtil.importData(importFile, Boolean.valueOf(scmOverwrite), ServletUtil.getZookeeper(session));
+            ZooKeeperUtil.importData(importFile, Boolean.valueOf(scmOverwrite), ServletUtil.getZookeeper(session,cfg));
             for (String line : importFile) {
                 if (line.startsWith("-")) {
                     dao.insertHistory((String) session.getAttribute("authName"), request.getRemoteAddr(), "File: " + uploadFileName + ", Deleting Entry: " + line);

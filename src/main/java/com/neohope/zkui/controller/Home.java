@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 @RestController
-public class Home {
+public class Home extends BaseController {
 
     private final static Logger logger = LoggerFactory.getLogger(Home.class);
 	
@@ -56,9 +56,10 @@ public class Home {
     		@RequestParam(name="zkPath",required=false) String zkPath, 
     		@RequestParam(name="navigate",required=false) String navigate) {
         logger.debug("Home Get Action!");
+        ZkConfig cfg = (ZkConfig)getBean("ZkConfig");
         try {
 
-            ZooKeeper zk = ServletUtil.getZookeeper(session);
+            ZooKeeper zk = ServletUtil.getZookeeper(session,cfg);
             List<String> nodeLst;
             List<LeafBean> leafLst;
             String currentPath, parentPath, displayPath;
@@ -125,8 +126,9 @@ public class Home {
     		@RequestParam(name="searchStr",required=false) String searchStr,
     		@RequestParam(name="authRole",required=false) String authRole){
         logger.debug("Home Post Action!");
+        ZkConfig cfg = (ZkConfig)getBean("ZkConfig");
         try {
-            Dao dao = new Dao();
+            Dao dao = (Dao)getBean("Dao");
             String[] nodeChkGroup = request.getParameterValues("nodeChkGroup");
             String[] propChkGroup = request.getParameterValues("propChkGroup");
             searchStr = searchStr.trim();
@@ -142,7 +144,7 @@ public class Home {
                 case "Save Node":
                     if (!newNode.equals("") && !currentPath.equals("") && authRole.equals(ZooKeeperUtil.ROLE_ADMIN)) {
                         //Save the new node.
-                        ZooKeeperUtil.createFolder(currentPath + newNode, "foo", "bar", ServletUtil.getZookeeper(session));
+                        ZooKeeperUtil.createFolder(currentPath + newNode, "foo", "bar", ServletUtil.getZookeeper(session,cfg));
                         session.setAttribute("flashMsg", "Node created!");
                         dao.insertHistory((String) session.getAttribute("authName"), request.getRemoteAddr(), "Creating node: " + currentPath + newNode);
                     }
@@ -151,7 +153,7 @@ public class Home {
                 case "Save Property":
                     if (!newProperty.equals("") && !currentPath.equals("") && authRole.equals(ZooKeeperUtil.ROLE_ADMIN)) {
                         //Save the new node.
-                        ZooKeeperUtil.createNode(currentPath, newProperty, newValue, ServletUtil.getZookeeper(session));
+                        ZooKeeperUtil.createNode(currentPath, newProperty, newValue, ServletUtil.getZookeeper(session,cfg));
                         session.setAttribute("flashMsg", "Property Saved!");
                         if (ZooKeeperUtil.checkIfPwdField(newProperty)) {
                             newValue = ZooKeeperUtil.SOPA_PIPA;
@@ -163,7 +165,7 @@ public class Home {
                 case "Update Property":
                     if (!newProperty.equals("") && !currentPath.equals("") && authRole.equals(ZooKeeperUtil.ROLE_ADMIN)) {
                         //Save the new node.
-                        ZooKeeperUtil.setPropertyValue(currentPath, newProperty, newValue, ServletUtil.getZookeeper(session));
+                        ZooKeeperUtil.setPropertyValue(currentPath, newProperty, newValue, ServletUtil.getZookeeper(session,cfg));
                         session.setAttribute("flashMsg", "Property Updated!");
                         if (ZooKeeperUtil.checkIfPwdField(newProperty)) {
                             newValue = ZooKeeperUtil.SOPA_PIPA;
@@ -173,7 +175,7 @@ public class Home {
                     mv= new ModelAndView("redirect:/home?zkPath="+ displayPath);
                     break;
                 case "Search":
-                    Set<LeafBean> searchResult = ZooKeeperUtil.searchTree(searchStr, ServletUtil.getZookeeper(session), authRole);
+                    Set<LeafBean> searchResult = ZooKeeperUtil.searchTree(searchStr, ServletUtil.getZookeeper(session,cfg), authRole);
                     mv.addObject("searchResult", searchResult);
                     mv.setViewName("search");
                     break;
@@ -183,7 +185,7 @@ public class Home {
                         if (propChkGroup != null) {
                             for (String prop : propChkGroup) {
                                 List<String> delPropLst = Arrays.asList(prop);
-                                ZooKeeperUtil.deleteLeaves(delPropLst, ServletUtil.getZookeeper(session));
+                                ZooKeeperUtil.deleteLeaves(delPropLst, ServletUtil.getZookeeper(session,cfg));
                                 session.setAttribute("flashMsg", "Delete Completed!");
                                 dao.insertHistory((String) session.getAttribute("authName"), request.getRemoteAddr(), "Deleting Property: " + delPropLst.toString());
                             }
@@ -191,7 +193,7 @@ public class Home {
                         if (nodeChkGroup != null) {
                             for (String node : nodeChkGroup) {
                                 List<String> delNodeLst = Arrays.asList(node);
-                                ZooKeeperUtil.deleteFolders(delNodeLst, ServletUtil.getZookeeper(session));
+                                ZooKeeperUtil.deleteFolders(delNodeLst, ServletUtil.getZookeeper(session,cfg));
                                 session.setAttribute("flashMsg", "Delete Completed!");
                                 dao.insertHistory((String) session.getAttribute("authName"), request.getRemoteAddr(), "Deleting Nodes: " + delNodeLst.toString());
                             }

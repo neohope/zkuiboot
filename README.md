@@ -4,7 +4,9 @@ Based on zkui - A UI dashboard that allows CRUD operations on Zookeeper.
 
 ToDo
 ====================
-version 0.1.0, lots of tests
+version 0.2.0
+1. lots of tests needed
+2. user control is broken
 
 Requirements
 ====================
@@ -13,9 +15,14 @@ Requires Java 8 to run.
 Setup
 ====================
 1. modify application.yml, Modify it to point to the zookeeper instance. Multiple zk instances are coma separated. First server should always be the leader.
-2. mvn clean install
-3. Run the jar. ( nohup java -jar zkuiboot-0.1.0-jar& )
-4. <a href="http://localhost:5000">http://localhost:5000</a> 
+2. mvn package
+3. Run the jar. (java -jar zkuiboot-0.2.0.jar)
+4. First time ,visit <a href="http://127.0.0.1:5000/initdb">http://127.0.0.1:5000/initdb</a> 
+5. Then, visit <a href="http://localhost:5000">http://localhost:5000</a> 
+
+Eclipse Integration
+====================
+http://javalite.io/eclipseIntegration
 
 Login Info
 ====================

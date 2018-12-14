@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 @RestController
-public class Login {
+public class Login extends BaseController{
 
     private final static Logger logger = LoggerFactory.getLogger(Login.class);
     

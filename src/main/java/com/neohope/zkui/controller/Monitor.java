@@ -30,8 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 @RestController
-//@RequestMapping("/")
-public class Monitor {
+public class Monitor  extends BaseController{
 
     private final static Logger logger = LoggerFactory.getLogger(Monitor.class);
     

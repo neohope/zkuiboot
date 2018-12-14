@@ -31,15 +31,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 @RestController
-public class Logout{
+public class Logout extends BaseController{
 
     private final static Logger logger = LoggerFactory.getLogger(Logout.class);
 
     @GetMapping("/logout")
     public ModelAndView doGet(HttpSession session, ModelAndView mv) throws ServletException, IOException {
+    	logger.debug("Logout Action!");
+        ZkConfig cfg = (ZkConfig)getBean("ZkConfig");
         try {
-            logger.debug("Logout Action!");
-            ZooKeeper zk = ServletUtil.getZookeeper(session);
+            ZooKeeper zk = ServletUtil.getZookeeper(session, cfg);
             session.invalidate();
             zk.close();
             mv= new ModelAndView("redirect:/login");

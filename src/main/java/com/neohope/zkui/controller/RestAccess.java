@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class RestAccess{
+public class RestAccess extends BaseController{
 
     private final static Logger logger = LoggerFactory.getLogger(RestAccess.class);
     
@@ -57,6 +57,7 @@ public class RestAccess{
     		@RequestParam(name="host",required=false) String hostName, 
     		@RequestParam(name="zkPath",required=false) String zkPath) throws ServletException, IOException {
         logger.debug("Rest Action!");
+        ZkConfig cfg = (ZkConfig)getBean("ZkConfig");
         ZooKeeper zk = null;
         try {
             String accessRole = ZooKeeperUtil.ROLE_USER;
@@ -71,7 +72,7 @@ public class RestAccess{
             if (hostName == null) {
                 hostName = request.getRemoteAddr();
             }
-            zk = ServletUtil.getZookeeper(session);
+            zk = ServletUtil.getZookeeper(session,cfg);
             //get the path of the hosts entry.
             LeafBean hostsNode = null;
             //If app name is mentioned then lookup path is appended with it.
@@ -169,8 +170,6 @@ public class RestAccess{
 
         } catch (KeeperException | InterruptedException ex) {
             logger.error(Arrays.toString(ex.getStackTrace()));
-            //mv.setViewName("error");
-            //mv.addObject("error", ex.getMessage());
         } finally {
             if (zk != null) {
                 ServletUtil.closeZookeeper(zk);

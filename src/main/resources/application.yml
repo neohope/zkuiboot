@@ -32,13 +32,13 @@ zkui:
   scmRepoPath: '//appconfig.txt'
   
   jdbcClass: org.h2.Driver
-  jdbcUrl: jdbc:h2:zkui
+  jdbcUrl: jdbc:h2:./zkui
   #jdbcClass: com.mysql.jdbc.Driver
   #jdbcUrl: jdbc:mysql://localhost:3306/zkui
   jdbcUser: root
   jdbcPwd: manager
   
-  defaultAcl: '{"acls":[{"scheme":"ip","id":"*","perms":"*"},{"scheme":"ip","id":"*","perms":"r"}]}'
+  defaultAcl: '{"acls":[{"scheme":"ip","id":"127.0.0.1","perms":"*"}]}'
   userSet: '{"users": [{ "username":"admin" , "password":"manager","role": "ADMIN" },{ "username":"appconfig" , "password":"appconfig","role": "USER"}]}' 
   blockPwdOverRest: false
   

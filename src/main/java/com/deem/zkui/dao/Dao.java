@@ -25,7 +25,10 @@ import java.util.List;
 import org.javalite.activejdbc.Base;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
 public class Dao {
     
     private final static Integer FETCH_LIMIT = 50;
@@ -45,6 +48,11 @@ public class Dao {
 	
 	@Value("${zkui.env}")
 	private String env;
+	
+	@Bean(name="Dao")
+	public Dao getDao(){
+		return new Dao();
+	}
     
     public Dao() {
     }

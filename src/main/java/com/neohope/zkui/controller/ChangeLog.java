@@ -31,14 +31,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 @RestController
-public class ChangeLog{
+public class ChangeLog extends BaseController{
 
     private final static Logger logger = LoggerFactory.getLogger(ChangeLog.class);
 
     @GetMapping("/history")
     public ModelAndView doGet(HttpSession session, ModelAndView mv){
         logger.debug("History Get Action!");
-        Dao dao = new Dao();
+        Dao dao = (Dao)getBean("Dao");
         List<History> historyLst = dao.fetchHistoryRecords();
         mv.setViewName("history");
         mv.addObject("historyLst", historyLst);
@@ -53,7 +53,7 @@ public class ChangeLog{
     		@RequestParam(name="historyNode",required=false) String historyNode){
         logger.debug("History Post Action!");
         
-        Dao dao = new Dao();
+        Dao dao = (Dao)getBean("Dao");
         List<History> historyLst;
         if (action.equals("showhistory")) {
             historyLst = dao.fetchHistoryRecordsByNode("%" + historyNode + "%");
