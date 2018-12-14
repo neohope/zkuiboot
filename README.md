@@ -5,6 +5,7 @@ Based on zkui - A UI dashboard that allows CRUD operations on Zookeeper.
 ToDo
 ====================
 version 0.2.0
+
 1. lots of tests needed
 2. user control is broken
 
@@ -133,35 +134,10 @@ Limitations
 
 Screenshots
 ====================
-Basic Role Based Authentication
-<br/>
-<img src="https://raw.github.com/DeemOpen/zkui/master/images/zkui-0.png"/>
-<br/>
-
-Dashboard Console
 <br/>
 <img src="https://raw.github.com/DeemOpen/zkui/master/images/zkui-1.png"/>
 <br/>
 
-CRUD Operations
-<br/>
-<img src="https://raw.github.com/DeemOpen/zkui/master/images/zkui-2.png"/>
-<br/>
-
-Import Feature
-<br/>
-<img src="https://raw.github.com/DeemOpen/zkui/master/images/zkui-3.png"/>
-<br/>
-
-Track History of changes
-<br/>
-<img src="https://raw.github.com/DeemOpen/zkui/master/images/zkui-4.png"/>
-<br/>
-
-Status of Zookeeper Servers
-<br/>
-<img src="https://raw.github.com/DeemOpen/zkui/master/images/zkui-5.png"/>
-<br/>
 
 License & Contribution
 ====================

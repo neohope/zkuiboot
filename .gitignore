@@ -6,6 +6,7 @@ target/
 *.db
 *.me.bat
 zkui.iml
+nbactions.xml
 .classpath
 .project
 
