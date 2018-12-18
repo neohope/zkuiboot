@@ -18,7 +18,7 @@ Setup
 1. modify application.yml, Modify it to point to the zookeeper instance. Multiple zk instances are coma separated. First server should always be the leader.
 2. mvn package
 3. Run the jar. (java -jar zkuiboot-0.2.0.jar)
-4. First time ,visit <a href="http://127.0.0.1:5000/initdb">http://127.0.0.1:5000/initdb</a> 
+4. First time ,visit <a href="http://127.0.0.1:5000/dbinit">http://127.0.0.1:5000/dbinit</a> 
 5. Then, visit <a href="http://localhost:5000">http://localhost:5000</a> 
 
 Eclipse Integration

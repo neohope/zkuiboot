@@ -36,11 +36,16 @@ public class LeafBean implements Comparable<LeafBean> {
         this.name = name;
         this.value = value;
         
-        try {
-        	this.strValue = new String(this.value, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
+        if(this.value==null){
         	this.strValue = null;
-            logger.error(Arrays.toString(ex.getStackTrace()));
+        }
+        else{
+	        try {
+	        	this.strValue = new String(this.value, "UTF-8");
+	        } catch (UnsupportedEncodingException ex) {
+	        	this.strValue = null;
+	            logger.error(Arrays.toString(ex.getStackTrace()));
+	        }
         }
     }
 

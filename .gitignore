@@ -4,6 +4,7 @@
 target/
 *.log
 *.db
+*.gz
 *.me.bat
 zkui.iml
 nbactions.xml
